@@ -59,6 +59,13 @@ Or from within a Claude Code session:
 ```
 
 
+## Updating
+
+```bash
+claude plugin marketplace update hamel-review
+claude plugin update review-loop@hamel-review
+```
+
 ## Usage
 
 ### Start a review loop
