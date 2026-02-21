@@ -75,6 +75,26 @@ Claude will implement the task. When it finishes, the stop hook:
 3. Blocks Claude's exit and asks it to address the feedback
 4. Claude addresses items it agrees with, then stops
 
+### Enable stress-test in the loop
+
+When stress-test is enabled, `/review-loop` will plan and verify before implementing:
+
+```
+/enable-stress-test
+```
+
+The workflow becomes: **plan → stress-test → implement → Codex review → address feedback**.
+
+Disable it to go back to the default flow (implement → review):
+
+```
+/disable-stress-test
+```
+
+You can also set the `REVIEW_LOOP_STRESS_TEST=true` environment variable instead.
+
+> **Note**: Requires the `stress-test` plugin to be installed alongside `review-loop`.
+
 ### Cancel a review loop
 
 ```
@@ -99,18 +119,30 @@ State is tracked in `.claude/review-loop.local.md` (add to `.gitignore`). Review
 
 ```
 claude-review-loop/
+├── plugins/
+│   ├── review-loop/                # review-loop plugin
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json
+│   │   ├── commands/
+│   │   │   ├── review-loop.md      # /review-loop slash command
+│   │   │   ├── cancel-review.md    # /cancel-review slash command
+│   │   │   ├── enable-stress-test.md   # /enable-stress-test toggle
+│   │   │   └── disable-stress-test.md  # /disable-stress-test toggle
+│   │   ├── hooks/
+│   │   │   ├── hooks.json          # Stop hook registration (900s timeout)
+│   │   │   └── stop-hook.sh        # Core lifecycle engine
+│   │   ├── scripts/
+│   │   │   └── setup-review-loop.sh
+│   │   └── AGENTS.md
+│   └── stress-test/                # stress-test plugin (optional)
+│       ├── .claude-plugin/
+│       │   └── plugin.json
+│       ├── skills/
+│       │   └── stress-test/
+│       │       └── SKILL.md        # /stress-test skill definition
+│       └── AGENTS.md
 ├── .claude-plugin/
-│   └── plugin.json           # Plugin manifest
-├── commands/
-│   ├── review-loop.md        # /review-loop slash command
-│   └── cancel-review.md      # /cancel-review slash command
-├── hooks/
-│   ├── hooks.json            # Stop hook registration (900s timeout)
-│   └── stop-hook.sh          # Core lifecycle engine
-├── scripts/
-│   └── setup-review-loop.sh  # Argument parsing, state file creation
-├── AGENTS.md                  # Agent operating guidelines
-├── CLAUDE.md                  # Symlink to AGENTS.md
+│   └── marketplace.json            # Marketplace with both plugins
 └── README.md
 ```
 
@@ -123,6 +155,7 @@ The stop hook timeout is set to 900 seconds (15 minutes) in `hooks/hooks.json`. 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `REVIEW_LOOP_CODEX_FLAGS` | `--dangerously-bypass-approvals-and-sandbox` | Flags passed to `codex`. Set to `--sandbox workspace-write` for safer sandboxed reviews. |
+| `REVIEW_LOOP_STRESS_TEST` | _(unset)_ | Set to `true` to enable stress-test in the review loop. Alternative to `/enable-stress-test`. |
 
 ### Telemetry
 
