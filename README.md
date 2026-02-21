@@ -1,8 +1,17 @@
 # review-loop
 
-A Claude Code plugin that adds an automated code review loop to your workflow.
+A Claude Code plugin marketplace with modular plugins for your workflow.
 
-## What it does
+## Plugins
+
+This marketplace contains two independent, modular plugins. Install either or both:
+
+| Plugin | Command | Description |
+|--------|---------|-------------|
+| `review-loop` | `/review-loop <task>` | Automated code review loop with independent Codex review |
+| `stress-test` | `/stress-test` | Adversarial stress-testing of technical plans with POC verification |
+
+## review-loop
 
 When you use `/review-loop`, the plugin creates a two-phase lifecycle:
 
@@ -29,19 +38,27 @@ The Codex review covers:
 
 ## Installation
 
-From the CLI:
+Add the marketplace, then install the plugins you want:
 
 ```bash
+# Add the marketplace
 claude plugin marketplace add hamelsmu/claude-review-loop
+
+# Install review-loop (toggle ON)
 claude plugin install review-loop@hamel-review
+
+# Install stress-test (toggle ON)
+claude plugin install stress-test@hamel-review
 ```
 
-Or from within a Claude Code session:
+To toggle a plugin **off**, uninstall it:
 
+```bash
+claude plugin uninstall review-loop
+claude plugin uninstall stress-test
 ```
-/plugin marketplace add hamelsmu/claude-review-loop
-/plugin install review-loop@hamel-review
-```
+
+Each plugin is independent — install one, both, or neither.
 
 
 ## Usage
@@ -110,6 +127,28 @@ The stop hook timeout is set to 900 seconds (15 minutes) in `hooks/hooks.json`. 
 ### Telemetry
 
 Execution logs are written to `.claude/review-loop.log` with timestamps, codex exit codes, and elapsed times. This file is gitignored.
+
+## stress-test
+
+When you use `/stress-test` in a conversation that has a technical plan, the plugin adversarially reviews it through six phases:
+
+1. **Extract & Decompose** — breaks the plan into decisions, assumptions, dependencies, interfaces, and ordering
+2. **Verify via Search** — launches parallel sub-agents to verify claims against real docs, issues, and changelogs
+3. **Identify What Needs a POC** — separates confirmed items from things that need hands-on testing
+4. **Get Approval** — presents proposed POCs grouped by risk; you choose which to run, skip, or modify
+5. **Execute POCs** — runs approved POCs in parallel inside `.poc-stress-test/`, reports confirmed/disproved/inconclusive
+6. **Walk Through Findings** — presents each finding for approval, applies changes to the plan, cleans up
+
+The result: plans that are verified against reality before you start building.
+
+### When to use it
+
+- After planning, before building
+- When evaluating unfamiliar technology
+- For expensive-to-reverse architectural decisions
+- When a plan relies on unverified performance claims
+
+Based on [gbasin/stress-test-skill](https://github.com/gbasin/stress-test-skill).
 
 ## Credits
 
