@@ -150,9 +150,9 @@ IMPORTANT: Write the FULL review to ${REVIEW_FILE}. You must create that file."
 
     # Build prompt for Claude based on whether the review file was created
     if [ -f "$REVIEW_FILE" ]; then
-      REASON="An independent code review from Codex has been written to ${REVIEW_FILE}.
+      REASON="IMPORTANT: Before addressing the review, run /compact to compress your conversation context. Your implementation work is complete and the full context from that phase is no longer needed.
 
-Please:
+After compacting, read the independent code review at ${REVIEW_FILE} and address it:
 1. Read the review carefully
 2. For each item, independently decide if you agree
 3. For items you AGREE with: implement the fix
@@ -162,7 +162,9 @@ Please:
 
 Use your own judgment. Do not blindly accept every suggestion."
     else
-      REASON="Codex was unable to complete the review (${REVIEW_FILE} not found). This may mean codex is not installed or timed out.
+      REASON="IMPORTANT: Before proceeding, run /compact to compress your conversation context. Your implementation work is complete and the full context from that phase is no longer needed.
+
+Codex was unable to complete the review (${REVIEW_FILE} not found). This may mean codex is not installed or timed out.
 
 Please do a brief self-review of your changes covering:
 - Code quality and organization
@@ -173,7 +175,7 @@ Please do a brief self-review of your changes covering:
 When satisfied, you may stop."
     fi
 
-    SYS_MSG="Review Loop [${REVIEW_ID}] — Phase 2/2: Address Codex feedback"
+    SYS_MSG="Review Loop [${REVIEW_ID}] — Phase 2/2: Compact context, then address Codex feedback"
 
     jq -n --arg r "$REASON" --arg s "$SYS_MSG" \
       '{decision:"block", reason:$r, systemMessage:$s}'
