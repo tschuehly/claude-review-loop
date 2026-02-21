@@ -1,5 +1,5 @@
 {
-  "description": "Review loop stop hook: runs Codex review after task completion, then has Claude address feedback",
+  "description": "Review loop and Ralph loop stop hooks",
   "hooks": {
     "Stop": [
       {
@@ -9,6 +9,12 @@
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.sh",
             "timeout": 900,
             "statusMessage": "Review loop: checking phase..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/ralph-stop-hook.sh",
+            "timeout": 900,
+            "statusMessage": "Ralph loop: checking phase..."
           }
         ]
       }

@@ -2,5 +2,12 @@
 .claude/review-loop.local.md
 .claude/review-loop.log
 
+# Ralph loop state (ephemeral, per-session)
+.claude/ralph-loop.local.md
+.claude/ralph-loop.log
+
 # Review artifacts (generated, not source)
 reviews/
+
+# Ralph loop ephemeral tracking
+progress.txt
