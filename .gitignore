@@ -2,5 +2,9 @@
 .claude/review-loop.local.md
 .claude/review-loop.log
 
+# Stress-test toggle and POC artifacts
+.claude/stress-test.enabled
+.poc-stress-test/
+
 # Review artifacts (generated, not source)
 reviews/

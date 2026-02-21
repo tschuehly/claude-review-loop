@@ -1,8 +1,17 @@
 # review-loop
 
-A Claude Code plugin that adds an automated code review loop to your workflow.
+A Claude Code plugin marketplace with modular plugins for your workflow.
 
-## What it does
+## Plugins
+
+This marketplace contains two independent, modular plugins. Install either or both:
+
+| Plugin | Command | Description |
+|--------|---------|-------------|
+| `review-loop` | `/review-loop <task>` | Automated code review loop with independent Codex review |
+| `stress-test` | `/stress-test` | Adversarial stress-testing of technical plans with POC verification |
+
+## review-loop
 
 When you use `/review-loop`, the plugin creates a two-phase lifecycle:
 
@@ -29,19 +38,27 @@ The Codex review covers:
 
 ## Installation
 
-From the CLI:
+Add the marketplace, then install the plugins you want:
 
 ```bash
+# Add the marketplace
 claude plugin marketplace add hamelsmu/claude-review-loop
+
+# Install review-loop (toggle ON)
 claude plugin install review-loop@hamel-review
+
+# Install stress-test (toggle ON)
+claude plugin install stress-test@hamel-review
 ```
 
-Or from within a Claude Code session:
+To toggle a plugin **off**, uninstall it:
 
+```bash
+claude plugin uninstall review-loop
+claude plugin uninstall stress-test
 ```
-/plugin marketplace add hamelsmu/claude-review-loop
-/plugin install review-loop@hamel-review
-```
+
+Each plugin is independent — install one, both, or neither.
 
 
 ## Usage
@@ -57,6 +74,26 @@ Claude will implement the task. When it finishes, the stop hook:
 2. Writes findings to `reviews/review-<id>.md`
 3. Blocks Claude's exit and asks it to address the feedback
 4. Claude addresses items it agrees with, then stops
+
+### Enable stress-test in the loop
+
+When stress-test is enabled, `/review-loop` will plan and verify before implementing:
+
+```
+/enable-stress-test
+```
+
+The workflow becomes: **plan → stress-test → implement → Codex review → address feedback**.
+
+Disable it to go back to the default flow (implement → review):
+
+```
+/disable-stress-test
+```
+
+You can also set the `REVIEW_LOOP_STRESS_TEST=true` environment variable instead.
+
+> **Note**: Requires the `stress-test` plugin to be installed alongside `review-loop`.
 
 ### Cancel a review loop
 
@@ -82,18 +119,30 @@ State is tracked in `.claude/review-loop.local.md` (add to `.gitignore`). Review
 
 ```
 claude-review-loop/
+├── plugins/
+│   ├── review-loop/                # review-loop plugin
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json
+│   │   ├── commands/
+│   │   │   ├── review-loop.md      # /review-loop slash command
+│   │   │   ├── cancel-review.md    # /cancel-review slash command
+│   │   │   ├── enable-stress-test.md   # /enable-stress-test toggle
+│   │   │   └── disable-stress-test.md  # /disable-stress-test toggle
+│   │   ├── hooks/
+│   │   │   ├── hooks.json          # Stop hook registration (900s timeout)
+│   │   │   └── stop-hook.sh        # Core lifecycle engine
+│   │   ├── scripts/
+│   │   │   └── setup-review-loop.sh
+│   │   └── AGENTS.md
+│   └── stress-test/                # stress-test plugin (optional)
+│       ├── .claude-plugin/
+│       │   └── plugin.json
+│       ├── skills/
+│       │   └── stress-test/
+│       │       └── SKILL.md        # /stress-test skill definition
+│       └── AGENTS.md
 ├── .claude-plugin/
-│   └── plugin.json           # Plugin manifest
-├── commands/
-│   ├── review-loop.md        # /review-loop slash command
-│   └── cancel-review.md      # /cancel-review slash command
-├── hooks/
-│   ├── hooks.json            # Stop hook registration (900s timeout)
-│   └── stop-hook.sh          # Core lifecycle engine
-├── scripts/
-│   └── setup-review-loop.sh  # Argument parsing, state file creation
-├── AGENTS.md                  # Agent operating guidelines
-├── CLAUDE.md                  # Symlink to AGENTS.md
+│   └── marketplace.json            # Marketplace with both plugins
 └── README.md
 ```
 
@@ -106,10 +155,33 @@ The stop hook timeout is set to 900 seconds (15 minutes) in `hooks/hooks.json`. 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `REVIEW_LOOP_CODEX_FLAGS` | `--dangerously-bypass-approvals-and-sandbox` | Flags passed to `codex`. Set to `--sandbox workspace-write` for safer sandboxed reviews. |
+| `REVIEW_LOOP_STRESS_TEST` | _(unset)_ | Set to `true` to enable stress-test in the review loop. Alternative to `/enable-stress-test`. |
 
 ### Telemetry
 
 Execution logs are written to `.claude/review-loop.log` with timestamps, codex exit codes, and elapsed times. This file is gitignored.
+
+## stress-test
+
+When you use `/stress-test` in a conversation that has a technical plan, the plugin adversarially reviews it through six phases:
+
+1. **Extract & Decompose** — breaks the plan into decisions, assumptions, dependencies, interfaces, and ordering
+2. **Verify via Search** — launches parallel sub-agents to verify claims against real docs, issues, and changelogs
+3. **Identify What Needs a POC** — separates confirmed items from things that need hands-on testing
+4. **Get Approval** — presents proposed POCs grouped by risk; you choose which to run, skip, or modify
+5. **Execute POCs** — runs approved POCs in parallel inside `.poc-stress-test/`, reports confirmed/disproved/inconclusive
+6. **Walk Through Findings** — presents each finding for approval, applies changes to the plan, cleans up
+
+The result: plans that are verified against reality before you start building.
+
+### When to use it
+
+- After planning, before building
+- When evaluating unfamiliar technology
+- For expensive-to-reverse architectural decisions
+- When a plan relies on unverified performance claims
+
+Based on [gbasin/stress-test-skill](https://github.com/gbasin/stress-test-skill).
 
 ## Credits
 

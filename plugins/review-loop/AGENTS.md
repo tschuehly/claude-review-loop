@@ -17,6 +17,15 @@ A Claude Code plugin that creates a two-phase review loop:
 - Codex stdout/stderr is redirected away from hook stdout to prevent JSON corruption
 - Telemetry goes to `.claude/review-loop.log` — structured, timestamped lines
 
+## Stress-test integration
+
+- When enabled, the review loop includes a plan-verify-implement flow instead of implement-only
+- Toggle: `.claude/stress-test.enabled` file or `REVIEW_LOOP_STRESS_TEST=true` env var
+- Commands: `/enable-stress-test` and `/disable-stress-test` create/remove the toggle file
+- Requires the `stress-test` plugin to be installed for `/stress-test` to work
+- State file includes `stress_test: true|false` to track whether stress-test is active for the current loop
+- POC artifacts go in `.poc-stress-test/` (gitignored, cleaned up by stress-test skill)
+
 ## Security constraints
 
 - Review IDs are validated against `^[0-9]{8}-[0-9]{6}-[0-9a-f]{6}$` to prevent path traversal
